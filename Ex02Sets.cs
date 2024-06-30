@@ -1,0 +1,190 @@
+using System;
+using System.Collections.Generic;
+
+namespace SampleConApp
+{
+    class Expense
+    {
+        public int Id { get; set; }
+        public string Description { get; set; }
+        public double Amount { get; set; }
+        public DateTime Date { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("----------\n Id = {0} \n Description = {1} \n Amount = {2} \n Date = {3}", Id, Description, Amount, Date);
+        }
+    }
+
+    class ExpenseComparer : IEqualityComparer<Expense>
+    {
+        public bool Equals(Expense x, Expense y)
+        {
+            if (x == null || y == null)
+                return false;
+            return x.Id == y.Id;
+        }
+
+        public int GetHashCode(Expense obj)
+        {
+            return obj.Id.GetHashCode();
+        }
+    }
+
+    static class Crud
+    {
+        public static void Main(string[] args)
+        {
+            ExpenseCollections Exp = new ExpenseCollections();
+            string stop = "";
+            do
+            {
+                WriteMenu();
+                int choice = MyConsole.GetInteger("Enter your choice");
+                switch (choice)
+                {
+                    case 1:
+                        Expense exp = SetValues();
+                        Exp.AddtoCart(exp);
+                        break;
+                    case 2:
+                        Exp.RemovetheProduct();
+                        break;
+                    case 3:
+                        Expense exp2 = SetValues();
+                        Exp.UpdatetheCart(exp2);
+                        break;
+                    case 4:
+                        Exp.FindtheProduct();
+                        break;
+                    case 5:
+                        Exp.DisplayProducts();
+                        break;
+                    default:
+                        return;
+                }
+
+                stop = MyConsole.GetString("Press Y to continue else n");
+            } while (stop.ToUpper() == "Y");
+        }
+
+        public static Expense SetValues()
+        {
+            var id = MyConsole.GetInteger("Enter the id of the product");
+            var description = MyConsole.GetString("Enter the description of the product");
+            var amount = MyConsole.GetDouble("Enter the amount of the product");
+
+            Console.WriteLine("Enter the date of the product (yyyy-MM-dd):");
+            var date1 = Console.ReadLine();
+            DateTime date;
+            bool isValid = DateTime.TryParse(date1, out date);
+            if (!isValid)
+            {
+                Console.WriteLine("Invalid date format. Please enter a valid date.");
+                return null;
+            }
+
+            var myExpense = new Expense { Id = id, Description = description, Amount = amount, Date = date };
+
+            return myExpense;
+        }
+
+        public static void WriteMenu()
+        {
+            Console.WriteLine("\nSelect an operation:");
+            Console.WriteLine("1. Add Expense");
+            Console.WriteLine("2. Remove Expense");
+            Console.WriteLine("3. Update Expense");
+            Console.WriteLine("4. Find Expense");
+            Console.WriteLine("5. Display Expenses");
+        }
+    }
+
+    static class MyConsole
+    {
+        public static int GetInteger(string prompt)
+        {
+            Console.Write(prompt + ": ");
+            return int.Parse(Console.ReadLine());
+        }
+
+        public static string GetString(string prompt)
+        {
+            Console.Write(prompt + ": ");
+            return Console.ReadLine();
+        }
+
+        public static double GetDouble(string prompt)
+        {
+            Console.Write(prompt + ": ");
+            return double.Parse(Console.ReadLine());
+        }
+    }
+
+    class ExpenseCollections
+    {
+        private HashSet<Expense> Products = new HashSet<Expense>(new ExpenseComparer());
+
+        public void AddtoCart(Expense expense)
+        {
+            if (Products.Add(expense))
+            {
+                Console.WriteLine("Expense added successfully.");
+            }
+            else
+            {
+                Console.WriteLine("An expense with this ID already exists.");
+            }
+        }
+
+        public void RemovetheProduct()
+        {
+            int id = MyConsole.GetInteger("Enter the id of product to remove");
+            Expense expense = new Expense { Id = id };
+            if (Products.Remove(expense))
+            {
+                Console.WriteLine("Expense removed successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Expense not found.");
+            }
+        }
+
+        public void UpdatetheCart(Expense expense)
+        {
+            if (Products.Remove(expense))
+            {
+                Products.Add(expense);
+                Console.WriteLine("Expense updated successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Expense not found.");
+            }
+        }
+
+        public void FindtheProduct()
+        {
+            int id = MyConsole.GetInteger("Enter the id of item to be searched");
+            foreach (var i in Products)
+            {
+                if (i.Id == id)
+                {
+                    Console.WriteLine(i);
+                    return;
+                }
+            }
+            Console.WriteLine("No product with the Id {0} exists", id);
+        }
+
+        public void DisplayProducts()
+        {
+            foreach (var prod in Products)
+            {
+                Console.WriteLine(prod);
+                Console.WriteLine();
+            }
+        }
+    }
+}
